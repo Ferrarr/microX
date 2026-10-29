@@ -9,7 +9,7 @@ CPUS ?= 4
 
 OBJS ?= build/$(ARCH)
 
-SOURCE_DIRS := $(ARCH_DIR) drivers init
+SOURCE_DIRS := $(ARCH_DIR) drivers init libc
 C_SOURCES := $(sort $(shell find $(SOURCE_DIRS) -type f -name '*.c' -print))
 ASM_SOURCES := $(sort $(shell find $(SOURCE_DIRS) -type f -name '*.s' -print))
 
@@ -17,9 +17,10 @@ OBJECTS := $(patsubst %.c, $(OBJS)/%.o, $(C_SOURCES)) \
 	   $(patsubst %.s, $(OBJS)/%.o, $(ASM_SOURCES))
 
 # ------------	COMPILER FLAGS	-------------- #
-INCLUDES := -Iinclude -I$(ARCH_DIR)/include
+INCLUDES := -Iinclude -Ilibc/include
 CFLAGS := -std=gnu11 -O2 -g -Wall -Wextra \
-	  -ffreestanding -fno-builtin -fno-stack-protector
+	  -ffreestanding -fno-builtin -fno-stack-protector \
+	  -D__is_libk
 ASFLAGS := -O2 -g -Wall -Wextra
 
 # ------------	  ARCH FLAGS	-------------- #
@@ -39,15 +40,26 @@ ARCH_LDSCRIPT := $(ARCH_DIR)/linker.ld
 DEPS := $(OBJECTS:.o=.d)
 MICROX := $(OBJS)/vmmicrox
 MAP := $(OBJS)/vmmicrox.map
+GDB ?= $(if $(CROSS_COMPILE),$(CROSS_COMPILE)gdb,riscv64-linux-gnu-gdb)
+GDB_PORT ?= 1234
 
 SOURCE_SUBDIRS := $(sort $(shell find $(SOURCE_DIRS) -type d -print))
 
-.PHONY: all clean qemu
+.PHONY: all clean qemu qemu-debug gdb
 
 all: $(MICROX)
 
 qemu: $(MICROX)
 	$(QEMU) $(QEMUFLAGS) -kernel "$(MICROX)"
+
+qemu-debug: $(MICROX)
+	$(QEMU) $(QEMUFLAGS) \
+		-gdb tcp::$(GDB_PORT) -S \
+		-no-reboot -no-shutdown \
+		-kernel "$(MICROX)"
+
+gdb: $(MICROX)
+	$(GDB) -ex "target remote :$(GDB_PORT)" "$(MICROX)"
 
 $(OBJS)/%.o: %.c Makefile $(ARCH_DIR)/Makefile
 	@mkdir -p $(@D)

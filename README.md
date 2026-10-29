@@ -1,12 +1,11 @@
 # microX Operating System
 
----
-
 ## Table of Contents
 >
 - [Introduction](##Introduction)
 - [Timeline](##Timeline)
 - [Features](##Features)
+- [Credits](#credits)
 
 ---
 
@@ -21,9 +20,15 @@ So this project is really just a lesson on portability, hardware standards, and 
 ## Timeline
 
 October 27, 2026: Initial commit, successfully printed "Hello from QEMU RISCV" through UART.
+<br>
+October 29, 2026: Removed manual RISC-V initialization, using OpenSBI instead. Added libc based on [osdev](https://wiki.osdev.org)'s [meaty skeleton](https://wiki.osdev.org/Meaty_Skeleton)
 
 ---
 
 ## Features
 
 TBA
+
+## Credits
+
+- [osdev wiki](https://wiki.osdev.org)

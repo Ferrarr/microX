@@ -2,11 +2,10 @@
 .globl _entry
 
 _entry:
-    csrr	t0,	mhartid
-    bnez	t0,	spin
-
     la		sp,	__stack_top
-    call	start
+    mv		s0,	a0
+    mv		s1,	a1
+    call	main
 
-spin:
-    j		spin
+1:
+    j     1b
